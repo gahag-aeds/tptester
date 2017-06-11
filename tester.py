@@ -30,22 +30,26 @@ def tp_test(
   passed_count = 0
   
   for ix in indexes:
-    with open(input_file(ix), 'rb') as ifile, \
-         open(answer_file(ix), 'rb') as afile:
+    try:
+      with open(input_file(ix), 'rb') as ifile, \
+           open(answer_file(ix), 'rb') as afile:
+        
+        passed = _run_test(
+          ix,
+          program_name,
+          args = args(ix),
+          stdin = stdin(ifile),
+          output = output,
+          afile = afile
+        )
+        
+        if passed: passed_count += 1
+        
+    except (FileNotFoundError, PermissionError) as err:
+      Print(Colors.Red, "Failed to open file " + err.filename)
+    
+    print()
       
-      passed = _run_test(
-        ix,
-        program_name,
-        args = args(ix),
-        stdin = stdin(ifile),
-        output = output,
-        afile = afile
-      )
-      
-      if passed: passed_count += 1
-      
-      print()
-  
   Print(Colors.Yellow, "Summary:")
   
   total = len(indexes)
@@ -63,12 +67,16 @@ def _run_test(ix, program_name, args, stdin, output, afile):
   
   usage_before = resource.getrusage(resource.RUSAGE_CHILDREN)
   
-  program = subprocess.run(
-    [program_name] + args,
-    stdin = stdin,
-    stdout = subprocess.PIPE,
-    stderr = subprocess.PIPE
-  )
+  try:
+    program = subprocess.run(
+      [program_name] + args,
+      stdin = stdin,
+      stdout = subprocess.PIPE,
+      stderr = subprocess.PIPE
+    )
+  except (subprocess.SubprocessError):
+    Print(Colors.Red, "Error: failed to execute.")
+    return False
   
   usage_after = resource.getrusage(resource.RUSAGE_CHILDREN)
   
