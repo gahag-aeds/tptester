@@ -89,7 +89,9 @@ def _run_test(ix, program_name, args, stdin, output, afile):
   print("System time: {0:.3f}s".format(cpu_sys))
   
   if (program.stderr):
-    Print(Colors.Red, "stderr: " + program.stderr)
+    Print(Colors.Red, "stderr {")
+    print(program.stderr.decode('utf8'))
+    Print(Colors.Red, "}")
   
   with output(ix, program.stdout) as out:
     output_match = compare_streams(afile, out)
