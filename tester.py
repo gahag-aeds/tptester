@@ -1,3 +1,4 @@
+import io
 import resource
 import subprocess
 
@@ -93,7 +94,7 @@ def _run_test(ix, program_name, args, stdin, output, afile):
     print(program.stderr.decode('utf8'))
     Print(Colors.Red, "}")
   
-  with output(ix, program.stdout) as out:
+  with output(ix, io.BytesIO(program.stdout)) as out:
     output_match = compare_streams(afile, out)
   
   Print(
