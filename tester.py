@@ -13,7 +13,7 @@ from tptester.util import compare_streams
 #  stdin provider : input file -> stream
 #  output provider : index -> stdout stream -> stream
 #
-#  indexes : string list
+#  indexes : number list
 #  input file provider : index -> input file name
 #  answer file provider : index -> answer file name
 def tp_test(
@@ -32,19 +32,29 @@ def tp_test(
   
   for ix in indexes:
     try:
-      with open(input_file(ix), 'rb') as ifile, \
-           open(answer_file(ix), 'rb') as afile:
+      ifile_name = input_file(ix)
+      ifile = open(ifile_name, 'rb') if ifile_name is not None else None
+      
+      afile_name = answer_file(ix)
+      afile = open(afile_name, 'rb') if afile_name is not None else None
+      
+      passed = _run_test(
+        ix,
+        program_name,
+        args = args(ix),
+        stdin = stdin(ifile),
+        output = output,
+        afile = afile
+      )
         
-        passed = _run_test(
-          ix,
-          program_name,
-          args = args(ix),
-          stdin = stdin(ifile),
-          output = output,
-          afile = afile
-        )
-        
-        if passed: passed_count += 1
+      if passed:
+        passed_count += 1
+      
+      if ifile is not None:
+        ifile.close()
+      
+      if afile is not None:
+        afile.close()
         
     except (FileNotFoundError, PermissionError) as err:
       Print(Colors.Red, "Failed to open file " + err.filename)
@@ -94,16 +104,19 @@ def _run_test(ix, program_name, args, stdin, output, afile):
     print(program.stderr.decode('utf8'))
     Print(Colors.Red, "}")
   
-  with output(ix, io.BytesIO(program.stdout)) as out:
-    output_match = compare_streams(afile, out)
+  if afile is not None:
+    with output(ix, io.BytesIO(program.stdout)) as out:
+      output_match = compare_streams(afile, out)
+    
+    Print(
+      Colors.Result(output_match),
+      "Output matched!" if output_match else "Output differed!"
+    )
+    
+    passed = output_match and program.returncode == 0
+    
+    Print(Colors.Result(passed), "Passed!" if passed else "Failed!")
+    
+    return passed
   
-  Print(
-    Colors.Result(output_match),
-    "Output matched!" if output_match else "Output differed!"
-  )
-  
-  passed = output_match and program.returncode == 0
-  
-  Print(Colors.Result(passed), "Passed!" if passed else "Failed!")
-  
-  return passed
+  return True;
