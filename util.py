@@ -1,3 +1,6 @@
+import os.path
+
+
 def compare_streams(s1, s2):
   bufsize = 8*1024
   
@@ -9,4 +12,13 @@ def compare_streams(s1, s2):
       return False
     
     if not b1:
-      return True 
+      return True
+
+
+def unique_filename(prefix, suffix):
+  ix = 1
+  
+  while os.path.isfile(prefix + str(ix) + suffix):
+    ix += 1
+  
+  return prefix + str(ix) + suffix
