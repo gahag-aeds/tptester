@@ -1,3 +1,6 @@
+import sys
+
+
 class Colors:
   Blue = '\033[94m';
   Green = '\033[92m';
@@ -7,6 +10,11 @@ class Colors:
   
   def Result(boolean):
     return Colors.Green if boolean else Colors.Red
-  
-def Print(color, str, end = '\n', flush = False):
-  print(color + str + Colors.Reset, end = end, flush = flush)
+
+
+if sys.stdout.isatty():
+  def Print(color, str, end = '\n', flush = False):
+    print(color + str + Colors.Reset, end = end, flush = flush)
+else:
+  def Print(color, str, end = '\n', flush = False):
+    print(str, end = end, flush = flush)

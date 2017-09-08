@@ -48,7 +48,7 @@ def tp_test(
   passed_count = 0
   
   if graph:
-    user_times = []
+    times = []
   
   for ix in indexes:
     try:
@@ -58,7 +58,7 @@ def tp_test(
       afile_name = answer_file(ix)
       afile = open(afile_name, 'rb') if afile_name is not None else None
       
-      passed = _run_test(
+      passed, time = _run_test(
         ix,
         
         program_name,
@@ -69,9 +69,10 @@ def tp_test(
         args(ix),
         stdin(ifile),
         output,
-        
-        user_times if graph else None
       )
+      
+      if graph:
+        times.append(time)
       
       if passed:
         passed_count += 1
@@ -101,7 +102,7 @@ def tp_test(
   
   if graph:
     Print(Colors.Blue, "Graph saved to file ", end = '')
-    print(plot_to_file(graph_title, graph_x, graph_y, indexes, user_times))
+    print(plot_to_file(graph_title, graph_x, graph_y, indexes, times))
 
 
 
@@ -117,7 +118,9 @@ def tp_test(
 #  stdin: stream.
 #  output: index -> stdout stream -> stream.
 #
-#  user_times: List to append the user times or None.
+#  returns passed, time:
+#  passed: boolean indicating whether the program passed the test.
+#  time: the user time the program took to complete the test.
 def _run_test(
   ix,
   
@@ -129,8 +132,6 @@ def _run_test(
   args,
   stdin,
   output,
-  
-  user_times = None
 ):
   Print(Colors.Blue, "Test #" + str(ix))
   print(
@@ -153,7 +154,7 @@ def _run_test(
     )
   except (subprocess.SubprocessError):
     Print(Colors.Red, "Error: failed to execute.")
-    return False
+    return False, -1
   
   
   usage_after = resource.getrusage(resource.RUSAGE_CHILDREN)
@@ -162,9 +163,6 @@ def _run_test(
   
   cpu_user = usage_after.ru_utime - usage_before.ru_utime
   cpu_sys = usage_after.ru_stime - usage_before.ru_stime
-  
-  if user_times is not None:
-    user_times.append(cpu_user);
   
   print("User time: {0:.3f}s".format(cpu_user))
   print("System time: {0:.3f}s".format(cpu_sys))
@@ -196,7 +194,7 @@ def _run_test(
     
     Print(Colors.Result(passed), "Passed!" if passed else "Failed!")
     
-    return passed
+    return passed, cpu_user
   
   
-  return True;
+  return True, cpu_user;
