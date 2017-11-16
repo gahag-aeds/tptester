@@ -60,6 +60,7 @@ def tp_test(
       
       passed, time = _run_test(
         ix,
+        ifile_name,
         
         program_name,
         afile,
@@ -123,6 +124,7 @@ def tp_test(
 #  time: the user time the program took to complete the test.
 def _run_test(
   ix,
+  ifile_name,
   
   program_name,
   afile,
@@ -133,7 +135,8 @@ def _run_test(
   stdin,
   output,
 ):
-  Print(Colors.Blue, "Test #" + str(ix))
+  Print(Colors.Blue, "Test #" + str(ix), end = '')
+  print(" " + ifile_name)
   print(
     ("Executing " if not valgrind else "Valgrinding ") + program_name + ": ",
     end = '',
